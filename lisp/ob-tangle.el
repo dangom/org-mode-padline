@@ -284,9 +284,16 @@ used to limit the exported source code blocks by language."
 			      (insert-file-contents file-name))
 			    (goto-char (point-max))
 			    ;; Handle :padlines unless first line in file
-			    (unless (or (string= "no" (cdr (assq :padline (nth 4 spec))))
-					(= (point) (point-min)))
-			      (insert "\n"))
+			    (let ((padlines (format "%s" (cdr (assq :padline (nth 4 spec))))))
+			      (cond
+			       ((and (string= "nil" padlines) (not (= (point) (point-min))))
+				(insert "\n"))
+			       ((string= "no" padlines)
+				nil)
+			       ((numberp (string-to-int padlines))
+				(dotimes (i (string-to-int padlines)) (insert "\n")))
+			       (t
+				(insert "\n"))))
 			    (insert content)
 			    (write-region nil nil file-name))))
 		      ;; if files contain she-bangs, then make the executable
